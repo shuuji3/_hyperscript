@@ -2,12 +2,13 @@
 layout: layout.njk
 title: ///_hyperscript
 ---
+<script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
 
 <h1>Playground</h1>
 
 <p>Below is the hyperscript playground.  You can enter some HTML with hyperscript in it and click the load button
-   or hit ctrl-enter in the editor, and the code will be loaded into the content.  You can also look at the source
-   for this page, which is written entirely in hyperscript.  :)</p>
+    or hit ctrl-enter in the editor, and the code will be loaded into the content.  You can also look at the source
+    for this page, which is written entirely in hyperscript.  :)</p>
 
 <div class="basicgrid">
     <div class="col-2">
@@ -34,9 +35,31 @@ title: ///_hyperscript
                     <option value="password_visibility">Password Hiding</option>
                 </select>
             </label>
-          </div>
+            <button _="on click
+                         js
+                           function encode(code) { return btoa(encodeURIComponent(code)) }
+                           encodedCode = encode(document.querySelector('#code').value)
+                           return encodedCode
+                         end
+                         set it to encodedCode
+                         writeText('https://hyperscript.org/playground/#src=' + encodedCode) into the navigator's clipboard
+                         set location.hash to '#src=' + encodedCode
+                       end">Share</button>
+        </div>
         <p><textarea id="code" class="monospace" rows="15" style="width: 100%;"
-                  _="on keyup[ctrlKey and key is 'Enter'] or loadCode
+                     _="init
+                       js
+                         function decode(code) { return decodeURIComponent(atob(code)) }
+                         encodedCode = location.hash.split('#src=')[1]
+                         if (encodedCode) {
+                           return decode(encodedCode)
+                         } else {
+                           return ''
+                         }
+                       end
+                       put it into #code.value
+                       trigger click on #load-button
+                     on keyup[ctrlKey and key is 'Enter'] or loadCode
                           transition #contents opacity to 0 over 10ms
                           put my value into #contents
                           transition #contents opacity to 1
@@ -45,7 +68,7 @@ title: ///_hyperscript
                      on exception from #contents
                           send showError(error: the message of the event's detail's error) to #eval-contents"></textarea>
         <div>
-            <button class="btn primary" _="on click send loadCode to #code">
+            <button id="load-button" class="btn primary" _="on click send loadCode to #code">
                 Load HTML Into Content
             </button>
         </div>
